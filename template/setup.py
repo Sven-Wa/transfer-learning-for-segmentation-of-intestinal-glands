@@ -33,7 +33,7 @@ from util.misc import get_all_files_in_folders_and_subfolders
 def set_up_model(output_channels, model_name, pretrained, no_cuda, resume, load_model, disable_databalancing, dataset_folder,
                  inmem, workers, optimizer_name=None, criterion_name=None, num_classes=None, ablate=False, **kwargs):
     """
-    Instantiate model, optimizer, criterion. Load a pretrained model or resume from a checkpoint.
+    Instantiate model, optimizer, criterion. Load a pretrained model or resume from a checkpoint.s
 
     Parameters
     ----------
@@ -108,6 +108,14 @@ def set_up_model(output_channels, model_name, pretrained, no_cuda, resume, load_
             # TODO: Remove or make param: map_location
             model_dict = torch.load(load_model, map_location='cpu')
             logging.info('Loading a saved model')
+
+            # Sven: Save model after loading, so that we can train with 0 epoches and go directly to the test phase
+            output_folder = os.path.dirname(logging.getLogger().handlers[-1].baseFilename)
+            filename = "model_best.pth.tar"
+            path_to_file = os.path.join(output_folder,filename)
+            torch.save(model_dict, path_to_file)
+            logging.info('save the loaded model')
+
             try:
                 model.load_state_dict(model_dict['state_dict'], strict=False)
             except Exception as exp:
