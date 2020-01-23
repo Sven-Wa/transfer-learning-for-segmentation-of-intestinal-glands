@@ -824,6 +824,9 @@ def miml(args):
     return
 
 
+import inspect
+
+
 def glas(args):
     """
     Fetches and prepares (in a DeepDIVA friendly format) the tubule dataset (from the GlaS challenge) for semantic
@@ -877,7 +880,7 @@ def glas(args):
 
     # links to HisDB data sets
     link_tubules = urllib.parse.urlparse(
-        'http://andrewjanowczyk.com/wp-static/tubule.tgz')
+        'https://warwick.ac.uk/fac/sci/dcs/research/tia/glascontest/download/warwick_qu_dataset_released_2016_07_08.zip')
 
     download_path_tubules = os.path.join(dataset_root, link_tubules.geturl().rsplit('/', 1)[-1])
 
@@ -888,62 +891,48 @@ def glas(args):
     print('Download complete. Unpacking files...')
 
     # unpack tubule folder that contains images, annotations and text files with lists of benign and malignant samples
-    tar_file = tarfile.open(download_path_tubules)
-    tar_file.extractall(path=dataset_root)
+    zip_file = zipfile.ZipFile(download_path_tubules)
+    zip_file.extractall(path=dataset_root)
 
     sets_dict = {}
     # 20 benign + 20 malignant images
-    train_ids_b = ['09-1339-01',
-                   '09-16566-03',
-                   '09-21631-03',
-                   '09-23232-02',
-                   'm9_10741F-12T2N0', '10-13799-05']  # 4*5
+    train_ids = ['train_']  # 4*5
 
-    train_ids_m = ['09-322-02',
-                   '09-16566-02',
-                   '10-13799-06',
-                   '10-15247-02',
-                   'm6_10719 T3N2a', 'm17_1421 IE-11 T3N2a', 'm18_1421 IE-11 1-86', 'm39_10-1273']  # 5*4
-
-    sets_dict['train'] = train_ids_b + train_ids_m
+    sets_dict['train'] = train_ids
 
     # validation has 29 images
-    val_ids_b = ['10-12813-05',
-                 '10-13799-02',
-                 'm2_10449-11E-T3N1b']  # 2*4 + 1 = 9
+    val_ids = ['testA_']  # 2*4 + 1 = 9
 
-    val_ids_m = ['09-1339-02',
-                 '09-1339-05',
-                 '09-1646-01',
-                 '09-1646-02',
-                 '09-23757-01']  # 5*4 = 20
-
-    sets_dict['val'] = val_ids_b + val_ids_m
+    sets_dict['val'] = val_ids
 
     # test has equal mal and ben and 16 img
 
-    test_ids_m = ['09-1646-03', '09-1646-05']  # 2*4 = 8
-    test_ids_b = ['10-12813-01', '10-13799-01']  # 2*4 = 8
+    test_ids = ['testB_']  # 2*4 = 8
 
-    sets_dict['test'] = test_ids_b + test_ids_m
+    sets_dict['test'] = test_ids
 
     print('Splitting the dataset into train, val and test')
+
+    img_file_path = os.path.join(dataset_root, "Warwick QU Dataset (Released 2016_07_08)")
+
+
     for s in ['train', 'test', 'val']:
         make_folder_if_not_exists(os.path.join(dataset_root, s, 'gt'))
         make_folder_if_not_exists(os.path.join(dataset_root, s, 'data'))
 
         # print('CREATING {} SET'.format(s))
-        for patient in sets_dict[s]:
-            for img_file in os.listdir(dataset_root):
-                if patient in img_file:
+
+        for pattern in sets_dict[s]:
+            for img_file in os.listdir(img_file_path):
+                if pattern in img_file:
                     if 'anno' in img_file:
                         # convert gt into correct data format
-                        convert_gt(os.path.join(dataset_root, img_file))
+                        convert_gt(os.path.join(img_file_path, img_file))
                         out_file = os.path.join('gt', img_file.replace('_anno', ''))
                     else:
                         out_file = os.path.join('data', img_file)
 
-                    shutil.move(os.path.join(dataset_root, img_file), os.path.join(dataset_root, s, out_file))
+                    shutil.move(os.path.join(img_file_path, img_file), os.path.join(dataset_root, s, out_file))
 
 
 if __name__ == "__main__":
