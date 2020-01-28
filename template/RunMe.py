@@ -33,6 +33,10 @@ import logging
 import numpy as np
 from sklearn.model_selection import ParameterGrid
 
+# sven
+from hyperopt import fmin, tpe, hp, STATUS_OK, Trials, pyll
+from statistics import mean
+
 # SigOpt
 from sigopt import Connection
 
@@ -93,6 +97,11 @@ class RunMe:
             return self._run_sig_opt(args)
         elif args.hyper_param_optim is not None:
             return self._run_manual_optimization(args)
+        # sven
+        ####
+        elif args.hyper_opt is not None:
+            return self._run_hyper_opt(args)
+        ####
         else:
             return self._execute(args)
 
@@ -147,7 +156,7 @@ class RunMe:
                 else:
                     conn.experiments(experiment.id).observations().create(suggestion=suggestion.id, value=score)
         return None, None, None
-
+############################################################################################################################
     def _run_manual_optimization(self, args):
         """
         Start a grid-like hyper-parameter optimization with the boundaries for the
@@ -172,11 +181,111 @@ class RunMe:
         for i, params in enumerate(hyper_param_grid):
             logging.info('{} of {} possible parameter combinations evaluated'
                          .format(i, len(hyper_param_grid)))
+
+
+
             for key in params:
                 args.__dict__[key] = params[key]
             self._execute(args)
         return None, None, None
 
+# sven
+########################################################################################################################
+
+
+    def _run_hyper_opt(self, args):
+
+        search_space = {"momentum": hp.uniform("momentum", 0.1, 0.9),
+                        "lr": hp.loguniform("lr", np.log(0.0001), np.log(0.1)),
+                        "decay-lr": hp.uniform("decay-lr", 0.5, 1),
+                        "batch-size": pyll.scope.int(hp.quniform("batch-size", 1, 33, 2))  # hp.quniform(label, low, high, q) returns a value like round(uniform(low, high)/q)*q
+                        }
+
+        logging.info('Hyper Parameter Optimization mode (hyper opt) ')
+
+
+        # we have to provide a file with the boundaries = search space
+        # instead of a grid -lik list of parameters it should use another  search algorithm like the Tree of Parzen estimators
+
+        # the objective_function is part of the fmin function below
+        def objective_function(params):
+
+            # changes paramter values in args
+            for key in params:
+                args.__dict__[key] = params[key]
+
+            print("args", args)
+
+            # runs the experiments as often as difined in the command line (--multi-run N)
+            _, val_scores, _  =  self._execute(args)  #val_scores : ndarray[floats] of size (1, `epochs`+1)
+
+            print("val_scores", val_scores)
+
+            # MULTI RUN
+            # get the index of the maximum score for each run (each row is one run, and each column is the score for one epoch
+            #indices_max_scores = np.argmax(val_scores, axis=1)
+
+            #print("indices_may_scores", indices_max_scores)
+
+            max_val_score = np.max(val_scores)
+
+
+            # # MULTI RUN: iterate over each run and get the maximum accuracy
+            # for i in range(np.shape(val_scores)[0]):
+            #     # get index of the maximum socre for the specific row
+            #     index = indices_max_scores[i]
+            #     # append the maximum score for each run to a list
+            #     max_val_score.append(val_scores[i, index])
+
+            print(max_val_score)
+
+            #score = mean(max_val_score)  # compute the average accuracy of the best scores over all runsa
+            score = max_val_score
+            #print("runs evaluated" + str(len(max_val_score)))
+            print("Parameters: " + str(params))
+            print("##############################################")
+            return {"loss": -score, "status": STATUS_OK}
+
+        trials = Trials()
+        iterations = args.__dict__["iterations"]
+
+        ### main function of hyperopt ####
+        # this function loops over different combinations of hyperparameters
+        # the  combination of the hyperparamters for the next iteration is based on the scores of all previous iterations
+        # the score is derived from the  objectiv_function
+        best_param = fmin(  # fmin returns a dictionary with the best parameters
+            fn=objective_function,  # fn is the function that is to be minimize
+            space=search_space,  # searchspace for the parameters
+            algo=tpe.suggest,  # Search algorithm: Tree of Parzen estimators
+            max_evals=iterations,  # number of parameter combinations that should be evalutated
+            trials=trials
+            # by passing a trials object we can inspect all the return values that were calculated during the experiment
+            # rstate=np.random.RandomState(111)
+        )
+
+        print("done")
+
+        loss = [x["result"]["loss"] for x in
+                trials.trials]  # trials.trials is a list of dictionaries representing everything about the search
+        # loss is a list of all scores (negative accuracies) that were obtained during the experiment
+        best_param_values = [x for x in
+                             best_param.values()]  # best_param is a dictionary with the parameter name as key and the best value as value
+        # best_param.values() output the best parameter values
+        # --> best_param_values is a list of the parametervalues that performed best
+
+        print("")
+
+        print("Score best parameters: ",
+              min(loss) * -1)  # min(loss) * -1 is the accuracy obtained with the best combination of parameter values
+        print("Best parameters: ",
+              best_param)  # best_param is the dictionary containing the parameters as key and the best values as value
+        print("Time elapsed: ", time() - start)
+        print("Parameter combinations evaluated: ", iterations)
+        print("############################################")
+        print("############################################")
+        print("############################################")
+
+    ############################################################################################################################
     @staticmethod
     def _execute(args):
         """
