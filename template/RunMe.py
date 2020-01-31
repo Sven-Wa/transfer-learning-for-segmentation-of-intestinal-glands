@@ -223,24 +223,27 @@ class RunMe:
 
             # MULTI RUN
             # get the index of the maximum score for each run (each row is one run, and each column is the score for one epoch
-            #indices_max_scores = np.argmax(val_scores, axis=1)
+            indices_max_scores = np.argmax(val_scores, axis=1)
 
-            #print("indices_may_scores", indices_max_scores)
+            print("indices_max_scores", indices_max_scores)
 
-            max_val_score = np.max(val_scores)
+            # SINGLE RUN
+            # max_val_score = np.max(val_scores)
 
-
+            max_val_score = []
             # # MULTI RUN: iterate over each run and get the maximum accuracy
-            # for i in range(np.shape(val_scores)[0]):
-            #     # get index of the maximum socre for the specific row
-            #     index = indices_max_scores[i]
-            #     # append the maximum score for each run to a list
-            #     max_val_score.append(val_scores[i, index])
+            for i in range(np.shape(val_scores)[0]):
+            # get index of the maximum socre for the specific row
+                index = indices_max_scores[i]
+                #append the maximum score for each run to a list
+                max_val_score.append(val_scores[i, index])
 
             print(max_val_score)
 
-            #score = mean(max_val_score)  # compute the average accuracy of the best scores over all runsa
-            score = max_val_score
+            # MULTI RUN
+            score = mean(max_val_score)  # compute the average accuracy of the best scores over all runsa
+            print("score: ", score)
+            #score = max_val_score
             #print("runs evaluated" + str(len(max_val_score)))
             print("Parameters: " + str(params))
             print("##############################################")
@@ -380,6 +383,10 @@ class RunMe:
             logging.shutdown()
             logging.getLogger().handlers = []
             writer.close()
+            ### TODO Sven write somthing date deleats all modeldes and folder when running in hyper-opt mode
+            if args.hyper_opt is not None:
+                # take out some important files and save them right under the experiment name
+                # delet the underlaying folderstructure and all its content
             print('All done! (Log files at {} )'.format(current_log_folder))
         return train_scores, val_scores, test_scores
 
@@ -421,7 +428,7 @@ class RunMe:
         # As many times as runs
         for i in range(args.multi_run):
             logging.info('Multi-Run: {} of {}'.format(i + 1, args.multi_run))
-            train_scores[i, :], val_scores[i, :], test_scores[i] = runner_class.single_run(writer,
+            train_scores[i, :], val_scores[i, :], test_scores[i] = runner_class.single_run(writer=writer,
                                                                                            run=i,
                                                                                            current_log_folder=current_log_folder,
                                                                                            **args.__dict__)
@@ -432,7 +439,7 @@ class RunMe:
                                         title='Runs: {}'.format(i + 1),
                                         xlabel='Epoch', ylabel='Score',
                                         ylim=[0, 100.0])
-            save_image_and_log_to_tensorboard(writer, tag='train_curve', image_tensor=train_curve, global_step=i)
+            save_image_and_log_to_tensorboard(writer, tag='train_curve', image=train_curve, global_step=i)
             logging.info('Generated mean-variance plot for train')
 
             # Generate and add to tensorboard the shaded plot for va
@@ -442,7 +449,7 @@ class RunMe:
                                       title='Runs: {}'.format(i + 1),
                                       xlabel='Epoch', ylabel='Score',
                                       ylim=[0, 100.0])
-            save_image_and_log_to_tensorboard(writer, tag='val_curve', image_tensor=val_curve, global_step=i)
+            save_image_and_log_to_tensorboard(writer, tag='val_curve', image=val_curve, global_step=i)
             logging.info('Generated mean-variance plot for val')
 
         # Log results on disk
