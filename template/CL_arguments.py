@@ -80,6 +80,21 @@ def _general_parameters(parser):
                                 default=None,
                                 help='path to a JSON file containing all variable names (as defined in the argument '
                                      'parser) that need to be searched over.')
+    # sven
+    ##############################################################3
+    parser_general.add_argument('--hyper-opt',
+                                default=None,
+                                action='store_true',
+                                help="runs hyper-opt"
+                                )
+    parser_general.add_argument('--iterations',
+                                type=int,
+                                default=None,
+                                help='number of parameter comninations that should be evaluated')
+
+
+    ################################################################3333
+
     parser_general.add_argument('--sig-opt',
                                 type=str,
                                 default=None,
