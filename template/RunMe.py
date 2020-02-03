@@ -34,8 +34,10 @@ import numpy as np
 from sklearn.model_selection import ParameterGrid
 
 # sven
-from hyperopt import fmin, tpe, hp, STATUS_OK, Trials, pyll
+from hyperopt import fmin, tpe, hp, STATUS_OK, Trials, pyll  # hyperopt has to be installed additionally in the deepDIVA environment
 from statistics import mean
+#from time import time
+import shutil
 
 # SigOpt
 from sigopt import Connection
@@ -201,6 +203,9 @@ class RunMe:
                         "batch-size": pyll.scope.int(hp.quniform("batch-size", 1, 33, 2))  # hp.quniform(label, low, high, q) returns a value like round(uniform(low, high)/q)*q
                         }
 
+
+
+
         logging.info('Hyper Parameter Optimization mode (hyper opt) ')
 
 
@@ -218,6 +223,13 @@ class RunMe:
 
             # runs the experiments as often as difined in the command line (--multi-run N)
             _, val_scores, _  =  self._execute(args)  #val_scores : ndarray[floats] of size (1, `epochs`+1)
+
+            # TODO
+            output_folder = args.__dict__["output_folder"]
+            experiment_name = args.__dict__["experiment_name"]
+            dataset = os.path.basename(os.path.normpath(args.__dict__['dataset_folder']))
+            folder_to_delete = os.path.join(*[output_folder, experiment_name, dataset])
+            shutil.rmtree(folder_to_delete)
 
             print("val_scores", val_scores)
 
@@ -282,7 +294,16 @@ class RunMe:
               min(loss) * -1)  # min(loss) * -1 is the accuracy obtained with the best combination of parameter values
         print("Best parameters: ",
               best_param)  # best_param is the dictionary containing the parameters as key and the best values as value
-        print("Time elapsed: ", time() - start)
+        output_folder = args.__dict__["output_folder"]
+        experiment_name = args.__dict__["experiment_name"]
+
+        file_name = os.path.join(*[output_folder, experiment_name, "best_param.txt"])
+
+        f = open(file_name, "w+")
+        f.write(json.dumps(best_param))
+        f.close
+
+        #print("Time elapsed: ", time() - start)
         print("Parameter combinations evaluated: ", iterations)
         print("############################################")
         print("############################################")
@@ -383,10 +404,8 @@ class RunMe:
             logging.shutdown()
             logging.getLogger().handlers = []
             writer.close()
-            ### TODO Sven write somthing date deleats all modeldes and folder when running in hyper-opt mode
-            if args.hyper_opt is not None:
-                # take out some important files and save them right under the experiment name
-                # delet the underlaying folderstructure and all its content
+
+
             print('All done! (Log files at {} )'.format(current_log_folder))
         return train_scores, val_scores, test_scores
 
