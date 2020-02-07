@@ -8,6 +8,8 @@ import numpy as np
 
 # Torch
 import torchvision.transforms as transforms
+###sven
+#import torchvision
 
 # DeepDIVA
 from datasets.image_folder_segmentation import load_dataset
@@ -59,18 +61,27 @@ def set_up_dataloaders(dataset_folder, batch_size, workers, inmem, **kwargs):
     # transforms on the image data and ground truth
     # twin crop only during training and validation default is sliding window, which is used during test
     train_ds.transform = val_ds.transform = custom_transforms.Compose([
+
         custom_transforms.RandomTwinCrop(crop_size=kwargs['crop_size']),
+        #Sven
+        custom_transforms.MyRotationTransform(angles=[-30, -15, 0, 15, 30]),
+        #Sven
+        custom_transforms.MyVerticalFlipTransform()
     ])
 
     # transforms on the image data (after conversion to Tensor)
     img_transform = transforms.Normalize(mean=mean, std=std)
+
+
 
     # transforms on the gt (after conversion to Tensor)
     gt_transform = transforms.Compose([
         # transforms the gt image into a one-hot encoded matrix
         custom_transforms.OneHotEncoding(class_encodings=train_ds.class_encodings),
         # transforms the one hot encoding to argmax labels -> for the cross-entropy criterion
-        custom_transforms.OneHotToPixelLabelling()])
+        custom_transforms.OneHotToPixelLabelling(),
+        ])
+
 
     train_ds.img_transform = val_ds.img_transform = test_ds.img_transform = img_transform
     train_ds.gt_transform = val_ds.gt_transform = test_ds.gt_transform = gt_transform
