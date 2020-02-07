@@ -142,3 +142,48 @@ class RandomTwinCrop(object):
         i, j, h, w = self.get_params(img.size, self.crop_size)
 
         return F.crop(img, i, j, h, w), F.crop(gt, i, j, h, w)
+
+### Sven
+### from
+import torchvision.transforms.functional as TF
+import random
+
+class MyRotationTransform:
+    """Rotate by one of the given angles."""
+    def __init__(self, angles):
+        self.angles = angles
+
+    def __call__(self, img, gt):
+        angle = random.choice(self.angles)
+        return F.rotate(img, angle), F.rotate(gt, angle)
+
+### Sven
+
+class MyVerticalFlipTransform:
+    """Rotate by one of the given angles."""
+
+    def __call__(self, img, gt):
+        return F.vflip(img), F.vflip(gt)
+
+# import random
+# class MyVerticalFlipTransform:
+#     """Rotate by one of the given angles."""
+#     def __init__(self, prob):
+#         self.prob = prob
+#
+#     def decision(prob):
+#         return random.random() < prob
+#
+#     def __call__(self, img, gt):
+#         #prob = self.prob
+#         prob = self.decision()
+#         if self.decision(prob) == True:
+#             return F.vflip(img), F.vflip(gt)
+#         else:
+#             return img, gt
+
+
+# torchvision.transforms.functional.vflip(img)
+
+
+
