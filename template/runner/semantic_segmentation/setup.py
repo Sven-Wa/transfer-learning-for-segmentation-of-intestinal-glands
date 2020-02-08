@@ -66,11 +66,14 @@ def set_up_dataloaders(dataset_folder, batch_size, workers, inmem, **kwargs):
         #Sven
         custom_transforms.MyRotationTransform(angles=[-30, -15, 0, 15, 30]),
         #Sven
-        custom_transforms.MyVerticalFlipTransform()
+        custom_transforms.MyVerticalFlipTransform(prob=0.5),
+        #Sven
+        custom_transforms.MyHorizontalFlipTransformation(prob=0.5)
     ])
 
     # transforms on the image data (after conversion to Tensor)
     img_transform = transforms.Normalize(mean=mean, std=std)
+
 
 
 
