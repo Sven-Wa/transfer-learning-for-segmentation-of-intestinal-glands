@@ -161,29 +161,27 @@ class MyRotationTransform:
 
 class MyVerticalFlipTransform:
     """Rotate by one of the given angles."""
+    def __init__(self, prob):
+        self.prob = prob
+
 
     def __call__(self, img, gt):
-        return F.vflip(img), F.vflip(gt)
+        if random.random() < self.prob:
+            return F.vflip(img), F.vflip(gt)
+        else:
+            return img, gt
 
-# import random
-# class MyVerticalFlipTransform:
-#     """Rotate by one of the given angles."""
-#     def __init__(self, prob):
-#         self.prob = prob
-#
-#     def decision(prob):
-#         return random.random() < prob
-#
-#     def __call__(self, img, gt):
-#         #prob = self.prob
-#         prob = self.decision()
-#         if self.decision(prob) == True:
-#             return F.vflip(img), F.vflip(gt)
-#         else:
-#             return img, gt
+class MyHorizontalFlipTransformation:
 
+    def __init__(self, prob):
+        self.prob = prob
 
-# torchvision.transforms.functional.vflip(img)
+    def __call__(self, img, gt):
+        if random.random() < self.prob:
+            return F.hflip(img), F.hflip(gt)
+        else:
+            return img, gt
+
 
 
 
