@@ -153,10 +153,24 @@ def checkpoint(epoch, new_value, best_value, model, optimizer, log_dir,
         'best_value': best_value,
         'optimizer': optimizer.state_dict(),
     }, filename)
-    if is_best:
+    # ### sven
+    # import template.CL_arguments
+    # import template.runner
+    # args = None
+    # args, parser = template.CL_arguments.parse_arguments(args)
+    # print(args, parser)
+    # print(args)
+    # ### this two lines have been added
+    # if args.hyper_opt is not None:
+    #     print("hyper_opt = ", args.hyper_opt)
+
+    ### "and args.hyper_opt is None" has been added
+    if is_best: # and args.hyper_opt is None:
         shutil.copyfile(filename, os.path.join(os.path.split(filename)[0], 'model_best.pth.tar'))
+
+    ### "and args.hyper_opt is None" has been added
     # If enabled, save all checkpoints with epoch number.
-    if checkpoint_all_epochs == True:
+    if checkpoint_all_epochs == True: # and args.hyper_opt is None:
         shutil.move(filename, os.path.join(os.path.split(filename)[0], 'checkpoint_{}.pth.tar'.format(epoch)))
     return best_value
 

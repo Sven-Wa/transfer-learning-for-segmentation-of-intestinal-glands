@@ -110,11 +110,14 @@ def set_up_model(output_channels, model_name, pretrained, no_cuda, resume, load_
             logging.info('Loading a saved model')
 
             # Sven: Save model after loading, so that we can train with 0 epoches and go directly to the test phase
-            output_folder = os.path.dirname(logging.getLogger().handlers[-1].baseFilename)
-            filename = "model_best.pth.tar"
-            path_to_file = os.path.join(output_folder,filename)
-            torch.save(model_dict, path_to_file)
-            logging.info('save the loaded model')
+            try:
+                output_folder = os.path.dirname(logging.getLogger().handlers[-1].baseFilename)
+                filename = "model_best.pth.tar"
+                path_to_file = os.path.join(output_folder,filename)
+                torch.save(model_dict, path_to_file)
+                logging.info('save the loaded model')
+            except:
+                pass
 
             try:
                 model.load_state_dict(model_dict['state_dict'], strict=False)

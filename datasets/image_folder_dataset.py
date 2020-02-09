@@ -110,8 +110,8 @@ class ImageFolderInMemory(data.Dataset):
     sequentially stored in memory for faster use when paired with dataloders. It is responsibility of
     the user ensuring that the dataset actually fits in memory.
     """
-
-    def __init__(self, path, transform=None, target_transform=None, workers=1):
+# sven: changed transform=Nonen into Transform=True
+    def __init__(self, path, transform=True, target_transform=True, workers=1):
         """
         Load the data in memory and prepares it as a dataset.
 
@@ -140,7 +140,7 @@ class ImageFolderInMemory(data.Dataset):
         file_names = np.asarray([item[0] for item in dataset.imgs])
         self.labels = np.asarray([item[1] for item in dataset.imgs])
 
-        # Load all samples
+        # Load all samples (sven: mulitporcessing module)
         pool = Pool(workers)
         self.data = pool.map(pil_loader, file_names)
         pool.close()
@@ -171,6 +171,23 @@ class ImageFolderInMemory(data.Dataset):
             target = self.target_transform(target)
 
         return img, target
+
+#### Sven
+    # def transform(self):
+    #     new_data = []
+    #     new_labels = []
+    #     transform = transforms.Compose([
+    #             transforms.RandomHorizontalFlip(),
+    #         ])
+    #
+    #     for img, target in zip(self.data, self.labels):
+    #         new_data.append(img.transform)
+    #         new_labels.append(target.transform)
+    #
+    #
+    #     return new_data, new_labels
+
+
 
     def __len__(self):
         return len(self.data)

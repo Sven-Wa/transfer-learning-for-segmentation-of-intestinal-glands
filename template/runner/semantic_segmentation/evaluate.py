@@ -376,7 +376,7 @@ def _save_output_evaluation(class_encodings, output_encoded, tag, multi_run=None
     # Get output folder using the FileHandler from the logger.
     # (Assumes the file handler is the last one)
     output_folder = os.path.dirname(logging.getLogger().handlers[-1].baseFilename)
-    dest_filename = os.path.join(output_folder, 'images', "output", tag if multi_run is None else tag + '_{}'.format(multi_run))
+    dest_filename = os.path.join(output_folder, 'images', "output", tag if multi_run is None else tag + '_{}'.format(multi_run) + '.bmp')
     if not os.path.exists(os.path.dirname(dest_filename)):
         os.makedirs(os.path.dirname(dest_filename))
 
@@ -387,7 +387,7 @@ def _save_output_evaluation(class_encodings, output_encoded, tag, multi_run=None
     # 2. Make a more human readable output -> one colour per class
     tag_col = "coloured/" + tag
 
-    dest_filename = os.path.join(output_folder, 'images', tag_col if multi_run is None else tag_col + '_{}'.format(multi_run))
+    dest_filename = os.path.join(output_folder, 'images', tag_col if multi_run is None else tag_col + '_{}'.format(multi_run) + '.bmp')
     if not os.path.exists(os.path.dirname(dest_filename)):
         os.makedirs(os.path.dirname(dest_filename))
 

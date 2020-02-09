@@ -182,7 +182,7 @@ class ImageFolder(data.Dataset):
         root : string
             Path to dataset folder (train / val / test)
         class_encodings :
-        num_workers : int
+        num_workers : intfl
         imgs_in_memory :
         crops_per_image : int
         crop_size : int

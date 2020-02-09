@@ -311,7 +311,7 @@ class RunMe:
         # As many times as runs
         for i in range(args.multi_run):
             logging.info('Multi-Run: {} of {}'.format(i + 1, args.multi_run))
-            train_scores[i, :], val_scores[i, :], test_scores[i] = runner_class.single_run(writer,
+            train_scores[i, :], val_scores[i, :], test_scores[i] = runner_class.single_run(writer=writer,
                                                                                            run=i,
                                                                                            current_log_folder=current_log_folder,
                                                                                            **args.__dict__)
@@ -322,7 +322,7 @@ class RunMe:
                                         title='Runs: {}'.format(i + 1),
                                         xlabel='Epoch', ylabel='Score',
                                         ylim=[0, 100.0])
-            save_image_and_log_to_tensorboard(writer, tag='train_curve', image_tensor=train_curve, global_step=i)
+            save_image_and_log_to_tensorboard(writer, tag='train_curve', image=train_curve, global_step=i)
             logging.info('Generated mean-variance plot for train')
 
             # Generate and add to tensorboard the shaded plot for va
@@ -332,7 +332,7 @@ class RunMe:
                                       title='Runs: {}'.format(i + 1),
                                       xlabel='Epoch', ylabel='Score',
                                       ylim=[0, 100.0])
-            save_image_and_log_to_tensorboard(writer, tag='val_curve', image_tensor=val_curve, global_step=i)
+            save_image_and_log_to_tensorboard(writer, tag='val_curve', image=val_curve, global_step=i)
             logging.info('Generated mean-variance plot for val')
 
         # Log results on disk

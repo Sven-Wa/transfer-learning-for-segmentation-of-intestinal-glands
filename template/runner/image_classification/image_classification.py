@@ -105,7 +105,7 @@ class ImageClassification:
 
     @classmethod
     def train_routine(cls, best_value, decay_lr, validation_interval, start_epoch, epochs, checkpoint_all_epochs,
-                      current_log_folder,
+                      current_log_folder, args=None,
                       **kwargs):
         """
         Performs the training and validatation routines
@@ -151,12 +151,21 @@ class ImageClassification:
                 val_value[epoch] = cls._validate(epoch=epoch, **kwargs)
             if decay_lr is not None:
                 adjust_learning_rate(epoch=epoch, decay_lr_epochs=decay_lr, **kwargs)
-            # Checkpoint
+            # # Checkpoint
+            # ## modified by sven
+            # import argparse
+            # import template.CL_arguments
+            # import template.RunMe
+            # args = template.CL_arguments.parse_arguments(args)
+            # ###
+            # ### sven
+            # ## you have added args=args and ( why ?????)
             best_value = checkpoint(epoch=epoch,
                                     new_value=val_value[epoch],
                                     best_value=best_value,
                                     log_dir=current_log_folder,
                                     checkpoint_all_epochs=checkpoint_all_epochs,
+                                    #args=args,
                                     **kwargs)
         logging.info('Training done')
         return train_value, val_value
