@@ -4,7 +4,7 @@ This code is a modified version of the DeepDIVA framework taken from:
 https://github.com/DIVA-DIA/DeepDIVA
 
 ## Content
-The goal of this project was to perform Segmentation of intestinal glands from hematoxylin and eosin stained Whole slide images derived from a local dataset. To accomplish this task I pre-trained a Unet on the publicy available GlaS dataset and fine-tune it on our local dataset. 
+The goal of this project was to perform segmentation of intestinal glands from hematoxylin and eosin stained Whole Slide Images derived from a local dataset. To accomplish this task I pre-trained a Unet on the publicy available GlaS dataset and fine-tune it on our local dataset. 
 
 
 ## Getting started
