@@ -1,33 +1,18 @@
-# DeepDIVA: A Highly-Functional Python Framework for Reproducible Experiments
+# transfer-learning-for-segmentation-of-intestinal-glands
+This code is a modified version of the DeepDIVA framework taken from:
 
-DeepDIVA is an infrastructure designed to enable quick and intuitive
-setup of reproducible experiments with a large range of useful analysis
-functionality.
-Reproducing scientific results can be a frustrating experience, not only
-in document image analysis but in machine learning in general.
-Using DeepDIVA a researcher can either reproduce a given experiment with
-a very limited amount of information or share their own experiments with
-others.
-Moreover, the framework offers a large range of functions, such as
-boilerplate code, keeping track of experiments, hyper-parameter
-optimization, and visualization of data and results.
-DeepDIVA is implemented in Python and uses the deep learning framework
-[PyTorch](http://pytorch.org/).
-It is completely open source and accessible as Web Service through
-[DIVAServices](http://divaservices.unifr.ch).
+https://github.com/DIVA-DIA/DeepDIVA
 
-## Additional resources
+## Content
+The goal of this project was to perform Segmentation of intestinal glands from hematoxylin and eosin stained Whole slide images derived from a local dataset. To accomplish this task I pre-trained a Unet on the publicy available GlaS dataset and fine-tune it on our local dataset. 
 
-- [DeepDIVA Homepage](https://diva-dia.github.io/DeepDIVAweb/index.html)
-- [Tutorials](https://diva-dia.github.io/DeepDIVAweb/articles.html)
-- [Paper on arXiv](https://arxiv.org/abs/1805.00329) 
 
 ## Getting started
 
 In order to get the framework up and running it is only necessary to clone the latest version of the repository:
 
 ``` shell
-git clone https://github.com/DIVA-DIA/DeepDIVA.git
+git clone https://github.com/Sven-Wa/transfer-learning-for-segmentation-of-intestinal-glands.git
 ```
 
 Run the script:
@@ -46,34 +31,42 @@ To verify the correctness of the procecdure you can run a small experiment. Acti
 source activate deepdiva
 ```
 
-Download the MNIST dataset:
+## 1. Download the GlaS dataset (dataset for pre-training)
+``` shell
+python util/data/get_a_dataset.py --dataset glas --output-folder ./
+```
+## 2. Download the pT1-gland-mask-dataset  (dataset for fine-tuning)
+
+https://github.com/Sven-Wa/pT1-gland-mask-dataset
+
+
+## 3. Train a Unet on the GlaS dataset in order to perform semantic segmentation on intestinal glands.
 
 ``` shell
-python util/data/get_a_dataset.py --dataset mnist --output-folder toy_dataset
+python /template/RunMe.py --runner-class semantic_segmentation --output-folder ./output --dataset-folder /path/to/GlaS/ --ignoregit --experiment-name pre-train-unet-with-glas --normalize --model-name unet --epochs 60 --crop-size 256 --imgs-in-memory 5 --crops-per-image 10 --momentum 0.9 --lr 0.01 --decay-lr 10 -j 10 --batch-size 32 --disable-databalancing
 ```
 
-Train a simple Convolutional Neural Network on the MNIST dataset using the command:
-
+you can additionally set the following data augmentation options:
 ``` shell
-python template/RunMe.py --output-folder log --dataset-folder toy_dataset/MNIST --lr 0.1 --ignoregit --no-cuda
+--rotation
+--flip
+--stain_augmentation
+--elastic_transformation
+
 ```
 
-## Citing us
+## 4. Test the trained model on a new gland dataset (pT1-gland-mask-dataset):
+```
+python /template/RunMe.py --runner-class semantic_segmentation --output-folder ./output --dataset-folder /path/to/pT1-gland-mask-dataset --ignoregit --experiment-name  test-performance-on-new-dataset --model-name unet --epochs 0 --crop-size 256 --imgs-in-memory 5 --crops-per-image 10 --momentum 0.9 --lr 0.01 --decay-lr 10 -j 10 --batch-size 32 --disable-databalancing --load-model /path/to/model/trained/on/Glas/model_best.pth.tar
+```
+You will see that the performance on the new dataset is not as good as on the  GlaS dataset. This is probably due to different color distribution between the two datasets. But we can improve the performance by fine-tuning our pre-trained model on images from the pT1-gland-mask-dataset
 
-If you use our software, please cite our paper as:
+## 5. Fine-tune the model with new images from the pT1-gland-mask-dataset.
+Inside the pT1-gland-mask-dataset Repository you can find a folder named subset. This folder contains subset of images from the pT1-gland-mask-dataset. Select one of this subsets to fine-tune your model. I experimented with this subsets to figure out how many images are needed for fine-tuning. It turned out that the performance for the our pre-trained Unet reaches saturation when fine-tuning with 18-24 images (without any data augmentation). 
 
-``` latex
-@inproceedings{albertipondenkandath2018deepdiva,
-  title={{DeepDIVA: A Highly-Functional Python Framework for Reproducible Experiments}},
-  author={Alberti, Michele and Pondenkandath, Vinaychandran and W{\"u}rsch, Marcel and Ingold, Rolf and Liwicki, Marcus},
-  booktitle={2018 16th International Conference on Frontiers in Handwriting Recognition (ICFHR)},
-  pages={423--428},
-  year={2018},
-  organization={IEEE}
-}
+```
+python /template/RunMe.py --runner-class semantic_segmentation --output-folder ./output --dataset-folder /path/to/pT1-gland-mask-dataset/s1_24_images --ignoregit --experiment-name  fine-tuning --model-name unet --epochs 60 --crop-size 256 --imgs-in-memory 5 --crops-per-image 10 --momentum 0.9 --lr 0.01 --decay-lr 10 -j 10 --batch-size 32 --disable-databalancing --load-model /path/to/pre-trained-model/model_best.pth.ta
 ```
 
-## License
 
-Our work is on GNU Lesser General Public License v3.0
 
